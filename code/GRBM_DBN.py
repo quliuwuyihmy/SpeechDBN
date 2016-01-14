@@ -265,7 +265,7 @@ def test_GRBM_DBN(finetune_lr=0.1, pretraining_epochs=[225, 75],
              pretrain_lr=[0.002, 0.02], k=1, weight_decay=0.0002,
              momentum=0.9, datasets=None, batch_size=128,
              hidden_layers_sizes=[1024, 1024, 1024],
-             n_ins=784, n_outs=10, filename="../data/DBN.pickle",
+             n_ins=784, n_outs=10, filename="../data/1234.pickle",
              load=True, save=True, verbose=False, pretraining_start=0,
              pretraining_stop=-1, finetune=True):
 
@@ -281,7 +281,7 @@ def test_GRBM_DBN(finetune_lr=0.1, pretraining_epochs=[225, 75],
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] / batch_size
 
     # numpy random generator
-    numpy_rng = numpy.random.RandomState()
+    numpy_rng = numpy.random.RandomState(123)
 
     loaded = False
 
@@ -411,7 +411,7 @@ def test_GRBM_DBN(finetune_lr=0.1, pretraining_epochs=[225, 75],
 
             last_validation_loss = this_validation_loss
 
-            if current_lr < 0.001:
+            if current_lr < 0.0001:
                 done_looping = True
 
         test_losses = test_model()
@@ -435,4 +435,3 @@ def test_GRBM_DBN(finetune_lr=0.1, pretraining_epochs=[225, 75],
         return (best_validation_loss * 100., test_score * 100.)
 
     return (0., 0.)
-

@@ -67,8 +67,8 @@ class RBM(object):
             # converted using asarray to dtype theano.config.floatX so
             # that the code is runable on GPU
             initial_W = numpy.asarray(numpy_rng.uniform(
-                      low=-4 * numpy.sqrt(6. / (n_hidden + n_visible)),
-                      high=4 * numpy.sqrt(6. / (n_hidden + n_visible)),
+                      low=- 0.5* numpy.sqrt(1. / (n_hidden + n_visible)),
+                      high= 0.5* numpy.sqrt(1. / (n_hidden + n_visible)),
                       size=(n_visible, n_hidden)),
                       dtype=theano.config.floatX)
             # theano shared variables for weights and biases
@@ -393,6 +393,16 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
             mean_cost += [train_rbm(batch_index)]
 
         print 'Training epoch %d, cost is ' % epoch, numpy.mean(mean_cost)
+        if verbose:
+                    image = Image.fromarray(
+                        tile_raster_images(
+                            X=dbn.rbm_layers[i].W.get_value(borrow=True).T,
+                            img_shape=(28, 28),
+                            tile_shape=(10, 10),
+                            tile_spacing=(1, 1)
+                        )
+                    )
+                    image.save('filters_at_layer_%i_epoch_%i.png' % (i, epoch))
 
         # Plot filters after each training epoch
         plotting_start = time.clock()
