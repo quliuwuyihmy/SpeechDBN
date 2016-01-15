@@ -7,6 +7,7 @@ import sys
 import time
 import datetime
 import re
+from matplotlib import pyplot as plt
 
 import numpy
 
@@ -259,6 +260,22 @@ class GRBM_DBN(object):
 
         self.oldparams = [theano.shared(numpy.zeros(p.get_value(borrow=True).shape, dtype=theano.config.floatX)) for p in self.params]
 
+def plot_weights_hists(dbn, epoch, layer_idx):
+    layer = dbn.rbm_layers[layer_idx]
+
+    weights = [x for line in layer.W.get_value() for x in line]
+
+    plt.hist(weights)
+    plt.savefig('layer_{}_weights_{}'.format(layer_idx, epoch))
+    plt.clf()
+
+    plt.hist(layer.vbias.get_value())
+    plt.savefig('layer_{}_vbias_{}'.format(layer_idx, epoch))
+    plt.clf()
+        
+    plt.hist(layer.hbias.get_value())
+    plt.savefig('layer_{}_hbias_{}'.format(layer_idx, epoch))
+    plt.clf()
 
 
 def test_GRBM_DBN(finetune_lr=0.1, pretraining_epochs=[225, 75],
@@ -329,7 +346,7 @@ def test_GRBM_DBN(finetune_lr=0.1, pretraining_epochs=[225, 75],
                 pretraining_epochs_new = pretraining_epochs[1]
 
             # go through pretraining epochs
-
+            costs = []
             for epoch in xrange(pretraining_epochs_new):
                 if verbose:
                     # weights
@@ -348,14 +365,26 @@ def test_GRBM_DBN(finetune_lr=0.1, pretraining_epochs=[225, 75],
                     hMean = sigmoid(numpy.dot(X, dbn.rbm_layers[i].W.get_value(borrow=True)) + dbn.rbm_layers[i].hbias.get_value(borrow=True))
                     image = Image.fromarray(hMean * 256)
                     image.save('probabilities_at_layer_%i_epoch_%i.gif' % (i, epoch))
-
+                       
+                    #histograms
+                    plot_weights_hists(dbn, epoch, i)
+                    
                 # go through the training set
                 c = []
                 for batch_index in xrange(n_train_batches):
                     c.append(pretraining_fns[i](index=batch_index,
                                                 lr=pretrain_lr_new))
                 end_time_temp = time.clock()
-                print 'Pre-training layer %i, epoch %d, cost %f ' % (i + 1, epoch + 1, numpy.mean(c)) + ' ran for %d sec' % ((end_time_temp - start_time_temp) )
+                mean_cost = numpy.mean(c)
+                costs.append(mean_cost)
+                
+                print 'Pre-training layer %i, epoch %d, cost %f ' % (i + 1, epoch + 1, mean_cost) + ' ran for %d sec' % ((end_time_temp - start_time_temp) )
+                
+            plt.plot(costs)
+            plt.savefig('layer_{}_costs'.format(i))
+            plt.clf()
+            
+        
 
         end_time = time.clock()
         print >> sys.stderr, ('The pretraining code for file ' +
