@@ -266,15 +266,15 @@ def plot_weights_hists(dbn, epoch, layer_idx):
     weights = [x for line in layer.W.get_value() for x in line]
 
     plt.hist(weights)
-    plt.savefig('layer_{}_weights_{}'.format(layer_idx, epoch))
+    plt.savefig('weights\\layer_{}_weights_{}'.format(layer_idx, epoch))
     plt.clf()
 
     plt.hist(layer.vbias.get_value())
-    plt.savefig('layer_{}_vbias_{}'.format(layer_idx, epoch))
+    plt.savefig('vbiases\\layer_{}_vbias_{}'.format(layer_idx, epoch))
     plt.clf()
         
     plt.hist(layer.hbias.get_value())
-    plt.savefig('layer_{}_hbias_{}'.format(layer_idx, epoch))
+    plt.savefig('hbiases\\layer_{}_hbias_{}'.format(layer_idx, epoch))
     plt.clf()
 
 
@@ -358,13 +358,13 @@ def test_GRBM_DBN(finetune_lr=0.1, pretraining_epochs=[225, 75],
                             tile_spacing=(1, 1)
                         )
                     )
-                    image.save('filters_at_layer_%i_epoch_%i.png' % (i, epoch))
+                    image.save('filters\\filters_at_layer_%i_epoch_%i.png' % (i, epoch))
                     
                     # probabilities
                     X = valid_set_x[:20].eval()
                     hMean = sigmoid(numpy.dot(X, dbn.rbm_layers[i].W.get_value(borrow=True)) + dbn.rbm_layers[i].hbias.get_value(borrow=True))
                     image = Image.fromarray(hMean * 256)
-                    image.save('probabilities_at_layer_%i_epoch_%i.gif' % (i, epoch))
+                    image.save('probabilities\\probabilities_at_layer_%i_epoch_%i.gif' % (i, epoch))
                        
                     #histograms
                     plot_weights_hists(dbn, epoch, i)

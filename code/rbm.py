@@ -82,7 +82,8 @@ class RBM(object):
 
         if vbias is None:
             # create shared variable for visible units bias
-            vbias = theano.shared(value=numpy.zeros(n_visible,
+            #I have changed initialization value to 1
+            vbias = theano.shared(value=numpy.ones(n_visible,
                                                     dtype=theano.config.floatX),
                                   name='vbias', borrow=True)
 
@@ -107,6 +108,10 @@ class RBM(object):
         hidden_term = T.sum(T.log(1 + T.exp(wx_b)), axis=1)
         return -hidden_term - vbias_term
 
+        #wx_b = np.dot(data, self.W) + self.h_bias
+        #vbias_term = np.dot(data, self.v_bias)
+        #hidden_term = np.sum(np.log(1 + np.exp(wx_b)), axis=1)
+        #return (- hidden_term - vbias_term).mean(axis=0)
     def propup(self, vis):
         '''This function propagates the visible units activation upwards to
         the hidden units
@@ -133,6 +138,8 @@ class RBM(object):
         h1_sample = self.theano_rng.binomial(size=h1_mean.shape,
                                              n=1, p=h1_mean,
                                              dtype=theano.config.floatX)
+        #now we have deterministic output from h1, v1 has randomness still
+        #h1_sample=pre_sigmoid_h1
         return [pre_sigmoid_h1, h1_mean, h1_sample]
 
     def propdown(self, hid):
@@ -158,8 +165,10 @@ class RBM(object):
         # int64 by default. If we want to keep our computations in floatX
         # for the GPU we need to specify to return the dtype floatX
         v1_sample = self.theano_rng.binomial(size=v1_mean.shape,
-                                             n=1, p=v1_mean,
+                                            n=1, p=v1_mean,
                                              dtype=theano.config.floatX)
+        # this is new trial to follow up the paper to use dterministic value                                    
+        v1_sample = pre_sigmoid_v1   
         return [pre_sigmoid_v1, v1_mean, v1_sample]
 
     def gibbs_hvh(self, h0_sample):
@@ -228,9 +237,10 @@ class RBM(object):
 
         cost = T.mean(self.free_energy(self.input)) - T.mean(
             self.free_energy(chain_end)) + 0.5 * self.weight_decay * (self.W ** 2).sum()
+        
         # We must not compute the gradient through the gibbs sampling
         gparams = T.grad(cost, self.params, consider_constant=[chain_end])
-
+        #gparams = nh_means * self.input - nh_means * nv_means
         # constructs the update dictionary
         for gparam, param in zip(gparams, self.params):
             # make sure that the learning rate is of the right dtype
